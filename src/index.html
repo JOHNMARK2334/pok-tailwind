@@ -1,0 +1,32 @@
+<!-- src/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pokedex App</title>
+        <link href="./output.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-100">
+        <header class="bg-gray-800 text-white p-4">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold">Pokedex</h1>
+                <input type="text" id="searchInput" placeholder="Search by name or ID..." class="px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </header>
+
+        <main class="container mx-auto mt-4 p-4">
+            <div id="pokemonList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+        </main>
+
+        <!-- Modal -->
+        <div id="pokemonModal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-4">
+                <button id="closeModal" class="text-red-500 float-right">X</button>
+                <div id="modalContent"></div>
+            </div>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
+</html>
