@@ -1,41 +1,24 @@
-// src/app.js
-
 const baseUrl = 'https://pokeapi.co/api/v2/pokemon';
 let pokemonData = [];
+let currentPage = 1;
+const totalPages = 21;
 
-// Fetch Pokemon data from PokeAPI
-async function fetchPokemonData() {
+// Fetch Pokemon data from PokeAPI with pagination
+async function fetchPokemonData(page = 1) {
     try {
-        const response = await fetch(`${baseUrl}`);
+        const response = await fetch(`${baseUrl}?offset=${(page - 1) * 20}&limit=20`);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        pokemonData = data.results;
+        const detailedDataPromises = data.results.map(pokemon => fetchPokemonInfo(pokemon.url));
+        const detailedData = await Promise.all(detailedDataPromises);
+        pokemonData = detailedData;
         return pokemonData;
     } catch (error) {
         console.error('Error fetching Pokemon data:', error);
         return [];
     }
-}
-
-// Render list of Pokemon
-async function renderPokemonList() {
-    const pokemonList = document.getElementById('pokemonList');
-    const data = await fetchPokemonData();
-
-    if (!data.length) {
-        pokemonList.innerHTML = '<p class="text-center text-red-500">Failed to load Pokemon data.</p>';
-        return;
-    }
-
-    pokemonList.innerHTML = ''; // Clear previous list
-
-    data.forEach(async (pokemon) => {
-        const pokemonInfo = await fetchPokemonInfo(pokemon.url);
-        const card = createPokemonCard(pokemonInfo);
-        pokemonList.appendChild(card);
-    });
 }
 
 // Fetch detailed Pokemon info
@@ -51,6 +34,41 @@ async function fetchPokemonInfo(url) {
         console.error('Error fetching Pokemon info:', error);
         return null;
     }
+}
+
+// Fetch evolution chain data
+async function fetchEvolutionChain(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching evolution chain:', error);
+        return null;
+    }
+}
+
+// Render list of Pokemon
+async function renderPokemonList() {
+    const pokemonList = document.getElementById('pokemonList');
+    const data = await fetchPokemonData(currentPage);
+
+    if (!data.length) {
+        pokemonList.innerHTML = '<p class="text-center text-red-500">Failed to load Pokemon data.</p>';
+        return;
+    }
+
+    pokemonList.innerHTML = ''; // Clear previous list
+
+    data.forEach(pokemon => {
+        const card = createPokemonCard(pokemon);
+        pokemonList.appendChild(card);
+    });
+
+    renderPagination();
 }
 
 // Create Pokemon card element
@@ -91,7 +109,7 @@ function createPokemonCard(pokemon) {
 }
 
 // Show detailed Pokemon information in a modal
-function showPokemonDetails(pokemon) {
+async function showPokemonDetails(pokemon) {
     const modal = document.getElementById('pokemonModal');
     const modalContent = document.getElementById('modalContent');
     modalContent.innerHTML = ''; // Clear previous details
@@ -135,6 +153,31 @@ function showPokemonDetails(pokemon) {
     infoContainer.appendChild(statsContainer);
     detailCard.appendChild(infoContainer);
 
+    // Fetch and display evolution chain
+    const speciesResponse = await fetch(pokemon.species.url);
+    const speciesData = await speciesResponse.json();
+    const evolutionChain = await fetchEvolutionChain(speciesData.evolution_chain.url);
+
+    if (evolutionChain) {
+        const evolutionTitle = document.createElement('p');
+        evolutionTitle.textContent = 'Evolution Chain:';
+        evolutionTitle.classList.add('mt-4', 'text-sm', 'font-semibold');
+        infoContainer.appendChild(evolutionTitle);
+
+        const evolutionContainer = document.createElement('div');
+        evolutionContainer.classList.add('text-sm', 'text-gray-600', 'mb-4');
+
+        let currentEvolution = evolutionChain.chain;
+        while (currentEvolution) {
+            const evolutionName = document.createElement('p');
+            evolutionName.textContent = currentEvolution.species.name;
+            evolutionContainer.appendChild(evolutionName);
+            currentEvolution = currentEvolution.evolves_to[0];
+        }
+
+        infoContainer.appendChild(evolutionContainer);
+    }
+
     modalContent.appendChild(detailCard);
     modal.classList.remove('hidden'); // Show modal
 }
@@ -152,26 +195,74 @@ closeModalBtn.addEventListener('click', closeModal);
 // Handle search input
 const searchInput = document.getElementById('searchInput');
 searchInput.addEventListener('input', () => {
+    filterAndRenderPokemon();
+});
+
+// Handle type filter
+const typeFilter = document.getElementById('typeFilter');
+typeFilter.addEventListener('change', () => {
+    filterAndRenderPokemon();
+});
+
+// Filter and render Pokemon list based on search and type filter
+function filterAndRenderPokemon() {
     const searchTerm = searchInput.value.trim().toLowerCase();
+    const selectedType = typeFilter.value;
 
     const filteredPokemon = pokemonData.filter(pokemon => {
-        return pokemon.name.toLowerCase().includes(searchTerm) || pokemon.id.toString() === searchTerm;
+        const matchesType = selectedType ? pokemon.types.some(type => type.type.name === selectedType) : true;
+        const matchesSearch = pokemon.name.toLowerCase().includes(searchTerm) || pokemon.id.toString() === searchTerm;
+        return matchesType && matchesSearch;
     });
 
     renderFilteredPokemonList(filteredPokemon);
-});
+}
 
 // Render filtered Pokemon list
 function renderFilteredPokemonList(filteredPokemon) {
     const pokemonList = document.getElementById('pokemonList');
     pokemonList.innerHTML = ''; // Clear previous list
 
-    filteredPokemon.forEach(async (pokemon) => {
-        const pokemonInfo = await fetchPokemonInfo(pokemon.url);
-        const card = createPokemonCard(pokemonInfo);
+    filteredPokemon.forEach(pokemon => {
+        const card = createPokemonCard(pokemon);
         pokemonList.appendChild(card);
     });
 }
 
-// Initial render of Pokemon list
+// Render pagination buttons
+function renderPagination() {
+    const pageNumbers = document.getElementById('pageNumbers');
+    pageNumbers.innerHTML = ''; // Clear previous buttons
+
+    for (let i = 1; i <= totalPages; i++) {
+        const pageButton = document.createElement('button');
+        pageButton.textContent = i;
+        pageButton.classList.add('bg-blue-500', 'hover:bg-blue-600', 'text-white', 'px-4', 'py-2', 'rounded-md');
+        if (i === currentPage) {
+            pageButton.classList.add('bg-blue-700');
+        }
+        pageButton.addEventListener('click', () => {
+            currentPage = i;
+            renderPokemonList();
+        });
+        pageNumbers.appendChild(pageButton);
+    }
+}
+
+// Event listeners for previous and next buttons
+document.getElementById('prevPage').addEventListener('click', () => {
+    if (currentPage > 1) {
+        currentPage--;
+        renderPokemonList();
+    }
+});
+
+document.getElementById('nextPage').addEventListener('click', () => {
+    if (currentPage < totalPages) {
+        currentPage++;
+        renderPokemonList();
+    }
+});
+
+// Initial render of Pokemon list with pagination
 renderPokemonList();

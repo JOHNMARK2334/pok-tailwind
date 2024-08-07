@@ -1,33 +1,62 @@
-<!-- src/index.html -->
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Pokedex App</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link href="./output.css" rel="stylesheet">
-    </head>
-    <body class="bg-gray-100">
-        <header class="bg-gray-800 text-white p-4">
-            <div class="container mx-auto flex justify-between items-center">
-                <h1 class="text-2xl font-bold">Pokedex</h1>
-                <input type="text" id="searchInput" placeholder="Search by name or ID..." class="px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-        </header>
-
-        <main class="container mx-auto mt-4 p-4">
-            <div id="pokemonList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-        </main>
-
-        <!-- Modal -->
-        <div id="pokemonModal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center">
-            <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-4">
-                <button id="closeModal" class="text-red-500 float-right">X</button>
-                <div id="modalContent"></div>
-            </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokedex App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="./output.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+<header class="bg-gray-800 text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Pokedex</h1>
+        <div class="flex items-center space-x-4">
+            <input type="text" id="searchInput" placeholder="Search by name or ID..." class="px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+            <select id="typeFilter" class="px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                <option value="">All Types</option>
+                <option value="normal">Normal</option>
+                <option value="fire">Fire</option>
+                <option value="water">Water</option>
+                <option value="grass">Grass</option>
+                <option value="electric">Electric</option>
+                <option value="ice">Ice</option>
+                <option value="fighting">Fighting</option>
+                <option value="poison">Poison</option>
+                <option value="ground">Ground</option>
+                <option value="flying">Flying</option>
+                <option value="psychic">Psychic</option>
+                <option value="bug">Bug</option>
+                <option value="rock">Rock</option>
+                <option value="ghost">Ghost</option>
+                <option value="dragon">Dragon</option>
+                <option value="dark">Dark</option>
+                <option value="steel">Steel</option>
+                <option value="fairy">Fairy</option>
+            </select>
         </div>
+    </div>
+</header>
 
-        <script src="src/script.js"></script>
-    </body>
+<main class="container mx-auto mt-4 p-4">
+    <div id="pokemonList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+</main>
+
+<!-- Modal -->
+<div id="pokemonModal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-4">
+        <button id="closeModal" class="text-red-500 float-right">X</button>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+<!-- Pagination -->
+<div id="pagination" class="container mx-auto mt-4 p-4 flex justify-center items-center gap-2">
+    <button id="prevPage" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">Previous</button>
+    <div id="pageNumbers" class="flex gap-2"></div>
+    <button id="nextPage" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">Next</button>
+</div>
+
+<script src="src/script.js"></script>
+</body>
 </html>
